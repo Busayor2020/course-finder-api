@@ -1,0 +1,4 @@
+# Store and check out every text file with LF endings. The code runs on Linux
+# (WSL locally, Ubuntu in production), where CRLF breaks shell, systemd and
+# Nginx files.
+* text=auto eol=lf

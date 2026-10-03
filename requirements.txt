@@ -1,0 +1,11 @@
+Flask~=3.1
+Flask-SQLAlchemy~=3.1
+Flask-Migrate~=4.1
+SQLAlchemy~=2.0
+PyMySQL~=1.1
+# PyMySQL needs this for MySQL 8's default caching_sha2_password auth
+cryptography>=42
+python-dotenv~=1.0
+pydantic~=2.12
+pandas~=3.0
+gunicorn~=26.0
