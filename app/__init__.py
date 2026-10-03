@@ -29,4 +29,8 @@ def create_app(config_name: str | None = None) -> Flask:
 
     app.register_blueprint(health_bp)
 
+    from app.cli import ingest_command
+
+    app.cli.add_command(ingest_command)
+
     return app

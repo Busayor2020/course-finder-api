@@ -42,9 +42,7 @@ class TimestampMixin:
 
 class University(TimestampMixin, db.Model):
     __tablename__ = "universities"
-    __table_args__ = (
-        CheckConstraint(in_list("country", COUNTRIES), name="country"),
-    )
+    __table_args__ = (CheckConstraint(in_list("country", COUNTRIES), name="country"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200))

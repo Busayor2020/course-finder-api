@@ -9,6 +9,8 @@ class Config:
     # pre_ping replaces connections MySQL has silently dropped;
     # recycle retires them before MySQL's idle timeout kicks in.
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 280}
+    # Where `flask ingest` writes its rejected-rows CSVs.
+    REPORTS_DIR = os.environ.get("REPORTS_DIR", "reports")
 
 
 class DevelopmentConfig(Config):
