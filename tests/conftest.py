@@ -1,11 +1,18 @@
 import pytest
 
 from app import create_app
+from app.extensions import db
 
 
 @pytest.fixture
 def app():
-    return create_app("testing")
+    app = create_app("testing")
+    # Tests skip Alembic and build the schema straight from the models.
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 
 @pytest.fixture

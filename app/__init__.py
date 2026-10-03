@@ -22,6 +22,9 @@ def create_app(config_name: str | None = None) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # Importing the models registers their tables on db.metadata, which is what
+    # `flask db migrate` compares against the live database.
+    from app import models  # noqa: F401
     from app.api.health import health_bp
 
     app.register_blueprint(health_bp)
