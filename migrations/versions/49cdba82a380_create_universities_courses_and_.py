@@ -1,8 +1,8 @@
 """create universities, courses and ingestion_runs
 
-Revision ID: c6dc92a30182
+Revision ID: 49cdba82a380
 Revises: 
-Create Date: 2026-10-03 23:10:08.433251
+Create Date: 2026-10-03 23:22:20.099010
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c6dc92a30182'
+revision = '49cdba82a380'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -29,7 +29,8 @@ def upgrade():
     sa.Column('unchanged', sa.Integer(), nullable=False),
     sa.Column('rejected', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.CheckConstraint("status IN ('running', 'success', 'failed')", name=op.f('ck_ingestion_runs_status')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_ingestion_runs'))
     )
     op.create_table('universities',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -40,9 +41,9 @@ def upgrade():
     sa.Column('website', sa.String(length=255), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.CheckConstraint("country IN ('UK', 'CA')", name='ck_universities_country'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('slug')
+    sa.CheckConstraint("country IN ('UK', 'CA')", name=op.f('ck_universities_country')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_universities')),
+    sa.UniqueConstraint('slug', name=op.f('uq_universities_slug'))
     )
     with op.batch_alter_table('universities', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_universities_country'), ['country'], unique=False)
@@ -65,12 +66,12 @@ def upgrade():
     sa.Column('last_verified_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.CheckConstraint("currency IN ('GBP', 'CAD')", name='ck_courses_currency'),
-    sa.CheckConstraint("level IN ('Foundation', 'Undergraduate', 'Masters', 'PhD')", name='ck_courses_level'),
-    sa.CheckConstraint("study_mode IN ('full_time', 'part_time')", name='ck_courses_study_mode'),
-    sa.ForeignKeyConstraint(['university_id'], ['universities.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('university_id', 'slug', 'level', name='uq_courses_university_slug_level')
+    sa.CheckConstraint("currency IN ('GBP', 'CAD')", name=op.f('ck_courses_currency')),
+    sa.CheckConstraint("level IN ('Foundation', 'Undergraduate', 'Masters', 'PhD')", name=op.f('ck_courses_level')),
+    sa.CheckConstraint("study_mode IN ('full_time', 'part_time')", name=op.f('ck_courses_study_mode')),
+    sa.ForeignKeyConstraint(['university_id'], ['universities.id'], name=op.f('fk_courses_university_id_universities')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_courses')),
+    sa.UniqueConstraint('university_id', 'slug', 'level', name=op.f('uq_courses_university_id_slug_level'))
     )
     with op.batch_alter_table('courses', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_courses_level'), ['level'], unique=False)

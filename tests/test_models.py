@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
-from app.models import Course, University
+from app.models import Course, IngestionRun, University
 
 
 def make_university(**overrides):
@@ -62,6 +62,22 @@ def test_same_course_slug_allowed_at_another_level(app):
 
 def test_unknown_country_is_rejected(app):
     db.session.add(make_university(country="US"))
+
+    with pytest.raises(IntegrityError):
+        db.session.commit()
+
+
+def test_course_must_belong_to_an_existing_university(app):
+    course = make_course(None, university_id=999)
+    del course.university  # leave only the raw id, pointing at no university
+    db.session.add(course)
+
+    with pytest.raises(IntegrityError):
+        db.session.commit()
+
+
+def test_unknown_ingestion_status_is_rejected(app):
+    db.session.add(IngestionRun(source_file="data/sample_courses.csv", status="done"))
 
     with pytest.raises(IntegrityError):
         db.session.commit()

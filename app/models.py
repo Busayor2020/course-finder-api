@@ -21,6 +21,7 @@ COUNTRIES = ("UK", "CA")
 LEVELS = ("Foundation", "Undergraduate", "Masters", "PhD")
 STUDY_MODES = ("full_time", "part_time")
 CURRENCIES = ("GBP", "CAD")
+RUN_STATUSES = ("running", "success", "failed")
 
 
 def utcnow() -> datetime:
@@ -42,7 +43,7 @@ class TimestampMixin:
 class University(TimestampMixin, db.Model):
     __tablename__ = "universities"
     __table_args__ = (
-        CheckConstraint(in_list("country", COUNTRIES), name="ck_universities_country"),
+        CheckConstraint(in_list("country", COUNTRIES), name="country"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -61,10 +62,10 @@ class University(TimestampMixin, db.Model):
 class Course(TimestampMixin, db.Model):
     __tablename__ = "courses"
     __table_args__ = (
-        UniqueConstraint("university_id", "slug", "level", name="uq_courses_university_slug_level"),
-        CheckConstraint(in_list("level", LEVELS), name="ck_courses_level"),
-        CheckConstraint(in_list("study_mode", STUDY_MODES), name="ck_courses_study_mode"),
-        CheckConstraint(in_list("currency", CURRENCIES), name="ck_courses_currency"),
+        UniqueConstraint("university_id", "slug", "level"),
+        CheckConstraint(in_list("level", LEVELS), name="level"),
+        CheckConstraint(in_list("study_mode", STUDY_MODES), name="study_mode"),
+        CheckConstraint(in_list("currency", CURRENCIES), name="currency"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -91,6 +92,7 @@ class Course(TimestampMixin, db.Model):
 
 class IngestionRun(db.Model):
     __tablename__ = "ingestion_runs"
+    __table_args__ = (CheckConstraint(in_list("status", RUN_STATUSES), name="status"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     source_file: Mapped[str] = mapped_column(String(255))
