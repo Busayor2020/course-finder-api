@@ -1,5 +1,7 @@
 # Course Finder API
 
+[![CI](https://github.com/Busayor2020/course-finder-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Busayor2020/course-finder-api/actions/workflows/ci.yml)
+
 A small Flask REST API for searching UK and Canadian university courses: ingest messy course data, clean it, store it in MySQL, and serve it through a versioned JSON API.
 
 > **All course data in this repo is synthetic.** University names may be real, but fees, IELTS scores and intakes are illustrative only.
