@@ -1,0 +1,51 @@
+# systemd unit: runs Gunicorn as a service that starts on boot and restarts if it crashes.
+# Installed to /etc/systemd/system/course-finder.service by deploy/setup.sh.
+#   sudo systemctl status course-finder      # is it running?
+#   sudo systemctl reload course-finder      # graceful: new workers pick up new code
+#   journalctl -u course-finder -f           # follow the logs
+
+[Unit]
+Description=Course Finder API (Gunicorn)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+# Gunicorn tells systemd when it is actually ready to serve (sd_notify), so
+# "started" means "accepting requests", not just "process launched".
+Type=notify
+NotifyAccess=main
+
+# Run as an unprivileged user with no login shell. The group is www-data so
+# Nginx can connect to the socket and read the static files.
+User=coursefinder
+Group=www-data
+WorkingDirectory=/srv/course-finder
+# Secrets and settings come from .env (mode 600, readable only by coursefinder).
+EnvironmentFile=/srv/course-finder/.env
+ExecStart=/srv/course-finder/.venv/bin/gunicorn --config deploy/gunicorn.conf.py wsgi:app
+# HUP makes Gunicorn start fresh workers with the new code, then retire the old
+# ones once their requests finish: a deploy with no dropped requests.
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=35
+
+Restart=on-failure
+RestartSec=5
+
+# Creates /run/course-finder (owner coursefinder, group www-data) for the socket,
+# and removes it when the service stops.
+RuntimeDirectory=course-finder
+RuntimeDirectoryMode=0750
+
+# Hardening: even if the app were compromised, it could not modify the system.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
