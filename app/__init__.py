@@ -25,9 +25,15 @@ def create_app(config_name: str | None = None) -> Flask:
     # Importing the models registers their tables on db.metadata, which is what
     # `flask db migrate` compares against the live database.
     from app import models  # noqa: F401
+    from app.api import api_v1
     from app.api.health import health_bp
+    from app.errors import register_error_handlers
 
     app.register_blueprint(health_bp)
+    app.register_blueprint(api_v1)
+    register_error_handlers(app)
+    # Keep JSON keys in the order the schemas declare them, not alphabetical.
+    app.json.sort_keys = False
 
     from app.cli import ingest_command
 
