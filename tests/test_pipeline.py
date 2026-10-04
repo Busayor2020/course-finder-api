@@ -4,7 +4,7 @@ import re
 import pytest
 
 from app.extensions import db
-from app.ingest.pipeline import run_ingestion
+from app.ingest.pipeline import REQUIRED_COLUMNS, clean_row, run_ingestion
 from app.models import Course, IngestionRun, University
 
 HEADER = [
@@ -171,3 +171,40 @@ def test_report_cells_cannot_run_as_spreadsheet_formulas(app, tmp_path):
     assert report["title"] == "'" + evil
     assert report["tuition_fee_international"] == "'-500"
     assert report["university_name"] == "University of Leeds"  # normal text is untouched
+
+
+GOOD_VALUES = LEEDS + ["Data Science", "MSc", "Computer Science", "12", "FT", "September",
+                       "£18,500", "6.5", ""]  # fmt: skip
+GOOD_RAW = dict(zip(REQUIRED_COLUMNS, GOOD_VALUES, strict=True))
+
+
+def test_clean_row_accepts_a_good_row():
+    row, reasons = clean_row(GOOD_RAW)
+
+    assert reasons == []
+    assert len(row["content_hash"]) == 64
+
+
+@pytest.mark.parametrize(
+    ("column", "value", "reason"),
+    [
+        ("study_mode", "weekends", "unknown study mode 'weekends'"),
+        ("tuition_fee_international", "£1,850,000,000", "fee 1850000000.00 is implausibly large"),
+        ("ielts_min", "six", "IELTS 'six' is not a number"),
+        ("duration_months", "forever", "duration 'forever' is not a valid number of months"),
+        ("duration_months", "0", "duration '0' is not a valid number of months"),
+        ("intakes", "Spring", "unrecognised intakes 'Spring'"),
+        ("subject_area", "", "subject_area is missing"),
+        ("university_name", "", "university_name is missing"),
+    ],
+)
+def test_clean_row_rejection_reasons(column, value, reason):
+    _, reasons = clean_row(GOOD_RAW | {column: value})
+
+    assert reasons == [reason]
+
+
+def test_clean_row_reports_every_problem_at_once():
+    _, reasons = clean_row(GOOD_RAW | {"title": "", "ielts_min": "12"})
+
+    assert reasons == ["title is missing", "IELTS 12.0 must be between 4.0 and 9.0"]

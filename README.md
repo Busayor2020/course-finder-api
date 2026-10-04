@@ -15,3 +15,15 @@ cp .env.example .env   # then fill in SECRET_KEY and DATABASE_URL
 flask run
 curl http://127.0.0.1:5000/health
 ```
+
+## Running tests
+
+Tests use an in-memory SQLite database, so they need no MySQL and no `.env`.
+
+```bash
+pytest -q              # the whole suite
+ruff check .           # lint
+ruff format --check .  # formatting
+```
+
+CI (`.github/workflows/ci.yml`) runs the same three commands on every push and pull request.
