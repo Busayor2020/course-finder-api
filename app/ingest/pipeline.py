@@ -236,10 +236,27 @@ def upsert_courses(rows: list[dict], universities: dict[str, University], run: I
         )
 
 
+# A spreadsheet treats a cell starting with one of these as a formula.
+FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def neutralise_formula(value):
+    """Stop spreadsheet apps running report cells as formulas (CSV injection).
+
+    The report echoes raw input back out, and people open it in Excel. A cell
+    like =HYPERLINK("http://evil.example", "Click") would otherwise run. A
+    leading apostrophe makes Excel and Sheets show the text as typed instead.
+    """
+    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
 def write_report(rejected: list[dict], reports_dir: Path, started_at) -> Path:
     reports_dir.mkdir(parents=True, exist_ok=True)
     path = reports_dir / f"rejected_{started_at:%Y%m%d_%H%M%S}.csv"
-    pd.DataFrame(rejected).to_csv(path, index=False)
+    safe_rows = [{key: neutralise_formula(value) for key, value in row.items()} for row in rejected]
+    pd.DataFrame(safe_rows).to_csv(path, index=False)
     return path
 
 

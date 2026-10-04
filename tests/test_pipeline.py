@@ -158,3 +158,16 @@ def test_sample_csv_rejects_each_bad_row_for_exactly_one_reason(app, tmp_path):
     # Each invalid sample row exists to demonstrate one problem, so none should
     # trip a second validation rule by accident.
     assert all(";" not in reason for reason in reasons)
+
+
+def test_report_cells_cannot_run_as_spreadsheet_formulas(app, tmp_path):
+    evil = '=HYPERLINK("http://evil.example", "Click")'
+    rows = [LEEDS + [evil, "Diploma", "Business", "12", "", "September", "-500", "6.5", ""]]
+
+    result = ingest(write_csv(tmp_path / "evil.csv", rows), tmp_path)
+
+    with result.report_path.open() as file:
+        report = next(csv.DictReader(file))
+    assert report["title"] == "'" + evil
+    assert report["tuition_fee_international"] == "'-500"
+    assert report["university_name"] == "University of Leeds"  # normal text is untouched
