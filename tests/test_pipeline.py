@@ -147,3 +147,14 @@ def test_ingest_command_prints_a_summary(app, sample_csv, tmp_path):
     assert re.search(r"Inserted\s+3\n", output)
     assert re.search(r"Rejected\s+5\n", output)
     assert "Rejected rows and reasons:" in output
+
+
+def test_sample_csv_rejects_each_bad_row_for_exactly_one_reason(app, tmp_path):
+    result = ingest("data/sample_courses.csv", tmp_path)
+
+    assert (result.run.rows_read, result.run.inserted, result.run.rejected) == (200, 185, 15)
+    with result.report_path.open() as file:
+        reasons = [row["reason"] for row in csv.DictReader(file)]
+    # Each invalid sample row exists to demonstrate one problem, so none should
+    # trip a second validation rule by accident.
+    assert all(";" not in reason for reason in reasons)
