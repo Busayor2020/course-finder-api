@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Course Finder</title>
+  <meta name="description" content="Search UK and Canadian university courses by subject, level, intake and fee.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Course Finder</h1>
+      <p>Search UK and Canadian university courses by subject, level, intake and fee.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- novalidate: the API validates every value, and its error message is shown below. -->
+    <form id="search-form" class="filters" role="search" novalidate>
+      <div class="field field-wide">
+        <label for="q">Keyword</label>
+        <input id="q" name="q" type="search" placeholder="e.g. data science" autocomplete="off" maxlength="100">
+      </div>
+
+      <div class="field">
+        <label for="country">Country</label>
+        <select id="country" name="country">
+          <option value="">Any country</option>
+          <option value="UK">United Kingdom</option>
+          <option value="CA">Canada</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="level">Level</label>
+        <select id="level" name="level">
+          <option value="">Any level</option>
+          <option value="Foundation">Foundation</option>
+          <option value="Undergraduate">Undergraduate</option>
+          <option value="Masters">Masters</option>
+          <option value="PhD">PhD</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="intake">Intake</label>
+        <select id="intake" name="intake">
+          <option value="">Any intake</option>
+          <option value="January">January</option>
+          <option value="May">May</option>
+          <option value="September">September</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="max_fee" id="max-fee-label">Max fee</label>
+        <input id="max_fee" name="max_fee" type="number" inputmode="numeric" min="1" step="500"
+               aria-describedby="max-fee-hint" disabled>
+        <p id="max-fee-hint" class="hint">Choose a country first: UK fees are in GBP, Canadian fees in CAD.</p>
+      </div>
+
+      <div class="field">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort">
+          <option value="title">Title (A to Z)</option>
+          <option value="fee_asc">Fee (low to high)</option>
+          <option value="fee_desc">Fee (high to low)</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Search</button>
+        <button type="button" id="clear" class="secondary">Clear filters</button>
+      </div>
+    </form>
+
+    <section class="results-section" aria-labelledby="results-heading">
+      <h2 id="results-heading" class="visually-hidden" tabindex="-1">Results</h2>
+      <p id="status" class="status" aria-live="polite"></p>
+      <ol id="results" class="results"></ol>
+      <nav id="pager" class="pager" aria-label="Results pages" hidden>
+        <button type="button" id="prev" class="secondary">Previous</button>
+        <span id="page-info"></span>
+        <button type="button" id="next" class="secondary">Next</button>
+      </nav>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p id="stats-strip"></p>
+      <p>All course data here is synthetic. University names are real, but fees, IELTS scores and intakes are illustrative.</p>
+    </div>
+  </footer>
+
+  <!-- One result card. app.js clones it and fills each [data-field] with textContent. -->
+  <template id="course-card">
+    <li class="card">
+      <p class="card-level" data-field="level"></p>
+      <h3 class="card-title" data-field="title"></h3>
+      <p class="card-university"><span data-field="university"></span>, <span data-field="location"></span></p>
+      <dl class="card-facts">
+        <div><dt>International fee</dt><dd data-field="fee"></dd></div>
+        <div><dt>IELTS minimum</dt><dd data-field="ielts"></dd></div>
+        <div><dt>Intakes</dt><dd data-field="intakes"></dd></div>
+        <div><dt>Duration</dt><dd data-field="duration"></dd></div>
+      </dl>
+      <p class="card-verified">Last verified <time data-field="verified"></time></p>
+    </li>
+  </template>
+</body>
+</html>

@@ -28,9 +28,11 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.api import api_v1
     from app.api.health import health_bp
     from app.errors import register_error_handlers
+    from app.web import web
 
     app.register_blueprint(health_bp)
     app.register_blueprint(api_v1)
+    app.register_blueprint(web)
     register_error_handlers(app)
     # Keep JSON keys in the order the schemas declare them, not alphabetical.
     app.json.sort_keys = False
